@@ -1,4 +1,4 @@
-import {Pv2 as cloudinary} from "cloudinary";
+import {v2 as cloudinary} from "cloudinary";
 import fs from "fs";
 
 
@@ -23,13 +23,14 @@ cloudinary.config({
 //     {public_id: "olympic_flag"},
 //     function(error, result){console.log(result);});
 
-const uploadCloudinary = async (localFilePath) => {
+const uploadOnCloudinary = async (localFilePath) => {
     try{
            if(!localFilePath) return null
            //upload the file on cloudinary
            const response = await cloudinary.uploader.upload(localFilePath, {resource_type: "auto"})
            //file has been uploaded successfully
-           console.log("file is uploaded on cloudinary", response.url);
+        //    console.log("file is uploaded on cloudinary", response.url);
+        fs.unlinkSync(localFilePath) 
            return response;
            
     } catch (error) {
@@ -38,4 +39,4 @@ const uploadCloudinary = async (localFilePath) => {
         }
 }
 
-export {uploadCloudinary}
+export {uploadOnCloudinary}
