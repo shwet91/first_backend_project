@@ -43,7 +43,7 @@ const registerUser = asyncHandler( async (req, res) => {
     // check for user creation 
     // return res
 
-    console.log(req.body)
+    
     const {username, email, fullName , password} = req.body;
     console.log("email: ", email) ;
 
@@ -62,7 +62,7 @@ const registerUser = asyncHandler( async (req, res) => {
 
     }
 
-    console.log(req.files);
+    console.log( "test-1" , req.files);
     
 
     const avatarLocalPath = req.files?.avatar[0]?.path;
@@ -207,6 +207,7 @@ const refreshToken = asyncHandler(async(req, res) => {
   try {
 
     const decodedToken = jwt.verify(incomingRefreshToken , process.env.REFRESH_TOKEN_SECRET);
+    console.log(decodedToken)
 
     const user = await User.findById(decodedToken?._id);
     if(!user){
@@ -240,7 +241,7 @@ const changeCurrentPassword = asyncHandler(async(req, res) => {
   const {oldPassword, newPassword} = req.body
 
   const user = await User.findById(req.user._id);
-  const inPasswordCorrect = user.isPasswordCorrect(oldPassword);
+  const isPasswordCorrect = user.isPasswordCorrect(oldPassword);
   if(!isPasswordCorrect){
     throw new ApiError(400, "invalid old password")
   }
@@ -258,20 +259,24 @@ const getCurrentUser = asyncHandler(async(req, res) => {
 })
 
 const updateAccountDetails = asyncHandler(async(req, res) => {
-  const {email , fullName} = req.body;
+  const { username , email , fullName } = req.body;
 
-  if(!email || !fullName){
+
+  if(!email || !fullName || !username){
     throw new ApiError(400, "All fields are required")
   }
 
-  const user = await User.findByIdAndUpdate(req.user?._id, {$set:{email, fullName}},{new: true}).select("-password")
+  const user = await User.findByIdAndUpdate(req.user?._id, {$set:{email, fullName, username}},{new: true}).select("-password")
 
   return res.status(200)
   .json(new ApiResponse(200, user, "details updated successfully"))
 })
 
 const updateUserAvatar = asyncHandler(async(req, res) => {
-  const avatarLocalPath = req.file?.path 
+  const avatarLocalPath = req.files?.avatar[0].path
+
+  console.log("the file is :",req.files)
+  console.log("the body is :",req.body)
 
   if(!avatarLocalPath){
     throw new ApiError(400," Avatar file is missing")
@@ -292,19 +297,19 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
 
 
 const updateUserCoverImage = asyncHandler(async(req, res) => {
-  const avatarLocalPath = req.file?.path 
+  const coverImageLocalPath = req.files?.coverImage[0].path 
 
-  if(!avatarLocalPath){
+  if(!coverImageLocalPath){
     throw new ApiError(400," cover image file is missing")
   }
 
-  const avatar = await uploadOnCloudinary(avatarLocalPath);
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
-  if(!avatar.url){
-    throw new ApiError(400, "Error while uploading avatar on cloudinary")
+  if(!coverImage.url){
+    throw new ApiError(400, "Error while uploading CoverImage on cloudinary")
   }
 
-  const user = await User.findByIdAndUpdate(req.user?._id, {$set:{coverImage: avatar.url}}, {new: true}).select("-password");
+  const user = await User.findByIdAndUpdate(req.user?._id, {$set:{coverImage: coverImage.url}}, {new: true}).select("-password");
 
   return res.status(200)
   .json(new ApiResponse(200, user, "cover image updated successfully"))
@@ -313,6 +318,8 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
 
 const getUserChannelProfile = asyncHandler(async(req, res) => {
   const {username} = req.params 
+
+  console.log(req.query)
 
   if(!username?.trim()){
     throw new ApiError(400, "username is missing")
@@ -376,7 +383,7 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
     throw new ApiError(404, "channel does not exist")
   }
 
-  return res.status(200).json( new ApiResponse(200, channel[0], "channel fetch successfully"))
+  return res.status(200).json( new ApiResponse(200, channel, "channel fetch successfully"))
   
 })
 
@@ -385,8 +392,14 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
 
 
 export {
-  registerUser,
-  loginUser,
+registerUser,
+loginUser,
 logoutUser,
-refreshToken
+refreshToken,
+changeCurrentPassword,
+getCurrentUser,
+updateAccountDetails,
+updateUserAvatar,
+updateUserCoverImage,
+getUserChannelProfile
 }
