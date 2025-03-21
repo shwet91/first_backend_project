@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asynchandler.js";
 import {ApiResponse} from "../utils/ApiResponse.js";
 import {ApiError} from "../utils/ApiError.js";
 import {User} from "../models/user.model.js"
+import { SampleDB } from "../models/sample.model.js";
 
 
 // const print = asyncHandler(async (req, res) => {
@@ -14,75 +15,46 @@ import {User} from "../models/user.model.js"
 
 const print = asyncHandler(async (req , res) => {
 
-    const {username} = req.params 
-    if(!username) {
-        throw new ApiError(400 , "invalid username")
-    }
+  const { data } = req.body;
 
-    const channel = await User.aggregate([
-        {
-          $match:{
-            username: username?.toLowerCase()
-          }
-        },
-        {
-          $lookup:{
-            from: "subscriptions",
-            localField: "_id",
-            foreignField: "channel",
-            as: "subscribers"
-          }
-        },
-        {
-        
-          $lookup:{
-            from: "subscriptions",
-            localField: "_id",
-            foreignField: "subscriber",
-            as: "subscribedTo"
-        }
-      },
-      {
-        $addFields:{
-          subscribersCount: {
-            $size: "$subscribers"
-          },
-          channelSubscribedToCount: {
-            $size: "$subscribedTo"
-          },
-          isSubscribed: {
-            $cond: {
-              if: {$in: [req.user?._id , "$subscribers.subscriber"] },
-              then: true,
-              else: false
-            }
-          }
-        }
-      },
-      {
-        $project: {
-         fullName: 1,
-         username: 1,
-         subscribersCount: 1,
-         channelSubscribedToCount: 1,
-         isSubscribed: 1,
-         email: 1,
-         avatar: 1,
-         coverImage: 1
-        }
-      }
-      ])
+  console.log("this is the test :",req.body)
 
-    if(!channel){
-        throw new ApiError(400 , "data not found")
-    }
+  if(!data){
+    throw new ApiError(400 , "Didnt get the data")
+  }
 
-    const user = await User.findOne({ username });
-     console.log(user);
+  const savedData = await SampleDB.insertMany(data)
+
+  if(!savedData){
+      throw new ApiError(500 , "failed to save the data")
+  }
 
 
-    res.status(200).json( new ApiResponse(200 , channel , "this is it") )
+    res.status(200).json( new ApiResponse(200 , savedData, "this is it") )
 
 })
 
-export {print}
+
+const operation = asyncHandler(async(req , res) => {
+
+
+  const data = await SampleDB.aggregate([
+    // Stage 1: Filter pizza order documents by pizza size
+    // {
+    //    $match: { size: "medium" }
+    // },
+    // Stage 2: Group remaining documents by pizza name and calculate total quantity
+    {
+       $group: {_id: "$name" , totalQuantity : { $sum: "$quantity" }  }
+    }
+ ])
+
+  if(!data){
+    throw new ApiError(500 , "the operation is failed !!")
+  }
+
+  return res.status(200)
+  .json( new ApiResponse(200 , data , "successful"))
+})
+
+export {print , operation}
