@@ -25,12 +25,16 @@ const addComment = asyncHandler(async (req, res) => {
     // TODO: add a comment to a video
 
     const {content , videoId} = req.body;
-    const {Id} = req.user._id; 
+    const userId = req.user?._id; 
 
-    let savedComment;
+    console.log("this is the thing : " , req.body , userId)
 
     if(!content || ! videoId) {
         throw new ApiError(400 , "invalid content or videoId")
+    }
+
+    if(!userId){
+        throw new ApiError(400 , "login first to create a comment")
     }
 
       const comment = await Comment.create({
@@ -46,9 +50,6 @@ const addComment = asyncHandler(async (req, res) => {
          
       }
   
-  
-  
-
   res.status(200).json( new ApiResponse(200 , createdComment , "the comment saved successfully"))
 
 })

@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 
+
 const app = express();
 
 
@@ -24,6 +25,9 @@ import userRouter from './routes/user.routes.js'
 //routes declaration
 
 app.use("/api/v1/users", userRouter)
+
+import commentRouter from "./routes/comment.routes.js"
+app.use("/api/v1/comments" , commentRouter )
 
 // http://localhost:8000/api/v1/users/register
 
