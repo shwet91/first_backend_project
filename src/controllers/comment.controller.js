@@ -1,4 +1,5 @@
 import mongoose from "mongoose"
+import { isValidObjectId } from "mongoose"
 import {Comment} from "../models/comment.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
@@ -9,13 +10,25 @@ const getVideoComments = asyncHandler(async (req, res) => {
     const {videoId} = req.params
     const {page = 1, limit = 10} = req.query
 
+   // console.log(req.params , req.query , typeof(videoId))
+
     const skip = ( page - 1 ) * limit
 
     if(!videoId || !page || !limit){
         throw new ApiError(400 , "pleases provide the videoId")
     }
 
-    const comments = await Comment.find({ video : videoId}).skip(skip).limit(limit)
+   // const videoObjectId =  mongoose.Types.ObjectId.createFromHexString(Number(videoId))
+    // const comments = await Comment.aggregate([
+    //     {
+    //         $match: { video: videoId }
+    //     }
+    // ]).skip(skip).limit( Number(limit) )
+
+
+ //   const videoObjectId = new  ObjectId(videoId);
+    console.log("Converted ObjectId:", isValidObjectId(videoId));
+    const comments = await Comment.find({ video: videoObjectId });   
 
     return res.status(200).json( new ApiResponse(200 , comments , "All the comments are loaded successfully"))
 
@@ -26,6 +39,8 @@ const addComment = asyncHandler(async (req, res) => {
 
     const {content , videoId} = req.body;
     const userId = req.user?._id; 
+
+    console.log(req.user)
 
     console.log("this is the thing : " , req.body , userId)
 
@@ -40,7 +55,7 @@ const addComment = asyncHandler(async (req, res) => {
       const comment = await Comment.create({
         content,
         videoId,
-        owner: Id    
+        owner: userId  
       })
     
       const createdComment = await Comment.findOne(comment._id)
