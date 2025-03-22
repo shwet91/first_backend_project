@@ -10,29 +10,18 @@ const getVideoComments = asyncHandler(async (req, res) => {
     const {videoId} = req.params
     const {page = 1, limit = 10} = req.query
 
-   // console.log(req.params , req.query , typeof(videoId))
-
-    const skip = ( page - 1 ) * limit
+   const skip = ( page - 1 ) * limit
 
     if(!videoId || !page || !limit){
         throw new ApiError(400 , "pleases provide the videoId")
     }
 
-   // const videoObjectId =  mongoose.Types.ObjectId.createFromHexString(Number(videoId))
-    // const comments = await Comment.aggregate([
-    //     {
-    //         $match: { video: videoId }
-    //     }
-    // ]).skip(skip).limit( Number(limit) )
-
-
- //   const videoObjectId = new  ObjectId(videoId);
-    console.log("Converted ObjectId:", isValidObjectId(videoId));
-    const comments = await Comment.find({ video: videoObjectId });   
+    const comments = await Comment.find({ video : videoId }).skip(skip).limit( Number(limit) );   
 
     return res.status(200).json( new ApiResponse(200 , comments , "All the comments are loaded successfully"))
 
 })
+
 
 const addComment = asyncHandler(async (req, res) => {
     // TODO: add a comment to a video
@@ -108,9 +97,22 @@ const deleteComment = asyncHandler(async (req, res) => {
     res.status(200).json( new ApiResponse(400 , deletedComment , "The comment deleted successfully"))
 })
 
+const createManyComment = asyncHandler(async(req , res) => {
+    const { data } = req.body;
+    
+    if(!data) {
+        throw new ApiError(500 , "didnt fet the data")
+    }
+
+    const saved = await Comment.create(data)
+
+    return res.status(200).json( new ApiResponse(500 , saved , "the data is saved"))
+})
+
 export {
     getVideoComments, 
     addComment, 
     updateComment,
-     deleteComment
+     deleteComment,
+     createManyComment
     }
