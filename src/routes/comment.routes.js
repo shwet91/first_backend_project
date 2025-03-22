@@ -14,8 +14,8 @@ router.route("/addComment").post( verifyJWT , addComment )
 
 
 router.route("/getComments/:videoId").get(getVideoComments)
-router.route("/updateComment").post(updateComment)
-router.route("/deleteComment").post(deleteComment)
+router.route("/updateComment").post( verifyJWT ,  updateComment)
+router.route("/deleteComment").post( verifyJWT , deleteComment)
 router.route("/createManyComment").post(createManyComment)
 
 

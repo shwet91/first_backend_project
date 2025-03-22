@@ -29,7 +29,6 @@ const addComment = asyncHandler(async (req, res) => {
     const {content , videoId} = req.body;
     const userId = req.user?._id; 
 
-    console.log(req.user)
 
     console.log("this is the thing : " , req.body , userId)
 
@@ -63,13 +62,19 @@ const updateComment = asyncHandler(async (req, res) => {
 
     const { commentId , content } = req.body;
 
+    if(!content){
+        throw new ApiError(400 , "plaeaase provide the content to update")
+    }
+
     const comment = await Comment.findById(commentId)
 
     if(!comment) {
         throw new ApiError(400 , "comment does not exist")
     }
 
-    if( comment.owner !== req.user._id ){
+    console.log( "the test :" , req.user , comment)
+
+    if( comment.owner.toString() !== req.user._id.toString() ){
         throw new ApiError(400 , "you are not the owner of the comment you can not update it")
     }
 
@@ -86,6 +91,12 @@ const deleteComment = asyncHandler(async (req, res) => {
 
     if(!commentId){
         throw new ApiError(400 , "Don't have comment Id")
+    }
+
+    const comment = await Comment.findById(commentId)
+
+    if( comment.owner.toString() !== req.user._id.toString() ){
+        throw new ApiError(400 , "you are not the owner of the comment you can not delete it")
     }
 
     const deletedComment = await Comment.findByIdAndDelete(commentId)
