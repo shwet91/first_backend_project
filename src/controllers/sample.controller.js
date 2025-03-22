@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asynchandler.js";
 import {ApiResponse} from "../utils/ApiResponse.js";
 import {ApiError} from "../utils/ApiError.js";
 import {User} from "../models/user.model.js"
+
 import { SampleDB } from "../models/sample.model.js";
 
 
@@ -57,4 +58,10 @@ const operation = asyncHandler(async(req , res) => {
   .json( new ApiResponse(200 , data , "successful"))
 })
 
-export {print , operation}
+const addDummyData = asyncHandler(async(req , res) => {
+
+  const { data } = req.body ;
+
+})
+
+export {print , operation , addDummyData}

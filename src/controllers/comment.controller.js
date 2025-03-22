@@ -72,7 +72,6 @@ const updateComment = asyncHandler(async (req, res) => {
         throw new ApiError(400 , "comment does not exist")
     }
 
-    console.log( "the test :" , req.user , comment)
 
     if( comment.owner.toString() !== req.user._id.toString() ){
         throw new ApiError(400 , "you are not the owner of the comment you can not update it")

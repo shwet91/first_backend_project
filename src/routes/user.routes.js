@@ -1,7 +1,7 @@
 import {Router} from "express";
 import {upload} from "../middlewares/multer.middleware.js";
 import {verifyJWT} from "../middlewares/auth.middleware.js";
-import {print , operation} from "../controllers/sample.controller.js";
+import {print , operation , addDummyData} from "../controllers/sample.controller.js";
 import {
     registerUser,
     loginUser,
@@ -42,6 +42,7 @@ router.route("/refresh-token").post(refreshToken)
 // sample routes
 router.route("/sample").post(print)
 router.route("/operation").post(operation)
+router.route("/addDummyData").post(addDummyData)
 
 //**** */
 
