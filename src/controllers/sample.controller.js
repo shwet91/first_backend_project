@@ -64,4 +64,21 @@ const addDummyData = asyncHandler(async(req , res) => {
 
 })
 
-export {print , operation , addDummyData}
+const assignment = async (req , res) => {
+  try {
+      const response = await fetch("https://api.github.com/users/hiteshchoudhary")
+
+
+      const data = await response.json()
+      
+     // console.log(data)
+
+      return res.json( new ApiResponse(200 , data , "ok"))
+
+      
+  } catch (error) {
+      console.error(error.message)
+  }
+}
+
+export {print , operation , addDummyData , assignment}
