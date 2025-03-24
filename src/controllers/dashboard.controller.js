@@ -40,18 +40,6 @@ const getChannelStats = asyncHandler(async (req, res) => {
             }
         ])
 
-        const likes = await Like.aggregate([
-            {
-                $match : {vi : userId}
-            },
-            {
-                $group : {
-                    _id : null ,
-                    totalSubscribers : { $sum : 1  }
-                }
-            }
-        ])
-
         const data = {
             totalViews : videos[0]?.totalViews ,
             totalVideos : videos[0]?.totalVideos ,

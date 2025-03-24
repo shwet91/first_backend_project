@@ -53,7 +53,7 @@ const addComment = asyncHandler(async (req, res) => {
          
       }
   
-  res.status(200).json( new ApiResponse(200 , createdComment , "the comment saved successfully"))
+     return res.status(200).json( new ApiResponse(200 , createdComment , "the comment saved successfully"))
 
 })
 
@@ -80,7 +80,7 @@ const updateComment = asyncHandler(async (req, res) => {
     comment.content = content,
     await comment.save()
 
-    res.status(200).json( new ApiResponse(400 , comment , "comment updated successfully"))
+    return res.status(200).json( new ApiResponse(400 , comment , "comment updated successfully"))
 
 })
 
@@ -104,7 +104,7 @@ const deleteComment = asyncHandler(async (req, res) => {
         throw new ApiError(400 , "This comment does not exist")
     }
 
-    res.status(200).json( new ApiResponse(400 , deletedComment , "The comment deleted successfully"))
+    return res.status(200).json( new ApiResponse(400 , deletedComment , "The comment deleted successfully"))
 })
 
 const createManyComment = asyncHandler(async(req , res) => {
