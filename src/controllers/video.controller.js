@@ -45,6 +45,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description , duration} = req.body
     // TODO: get video, upload to cloudinary, create video
+    console.log(req.body)
 
     if( !req.user?._id){
         throw new ApiError( 400 , "unauthorized request...login first to upload video")
@@ -55,7 +56,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     }
 
     const videoFilePath = req.files?.videoFile[0]?.path 
-    const thumbnailPath = req.files?.thumbnail[0]?.path 
+    const thumbnailPath = req.files?.thumbnail?.[0]?.path 
 
     let videoFile = ""
 
@@ -75,14 +76,15 @@ const publishAVideo = asyncHandler(async (req, res) => {
         }
     }
 
+    console.log(title , description , duration)
 
 
     const video = await Video.create({
         title,
         description,
         duration,
-        videoFile : videoFile,
-        thumbnail : thumbnail,
+        videoFile : videoFile.url,
+        thumbnail : thumbnail.url,
         views : 0,
         isPublished : true,
         owner : req.user._id

@@ -27,6 +27,8 @@ const registerUser = asyncHandler( async (req, res) => {
     const {username, email, fullName , password} = req.body;
      console.log( "test-1 :" , req.body);
 
+     console.log("test2" , typeof(fullName))
+
     if([username, email, fullName, password].some((field)=> field?.trim() === "" )
     ){
 
@@ -143,7 +145,12 @@ const loginUser = asyncHandler(async (req, res) => {
 
  const options = {
   httpOnly: true,
-  // secure: true
+  secure: true, // Use HTTPS
+  sameSite: 'None', // Crucial for cross-domain
+  // domain: 'http://localhost:5173', // Note the leading dot for subdomains
+  path: '/',
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+
  }
 
  return res.status(200)
@@ -253,7 +260,8 @@ const changeCurrentPassword = asyncHandler(async(req, res) => {
   const {oldPassword, newPassword} = req.body
 
   const user = await User.findById(req.user._id);
-  const isPasswordCorrect = user.isPasswordCorrect(oldPassword);
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+  console.log("test1 :" , isPasswordCorrect)
   if(!isPasswordCorrect){
     throw new ApiError(400, "invalid old password")
   }
@@ -289,6 +297,7 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
 
   console.log("the file is :",req.files)
   console.log("the body is :",req.body)
+  console.log("userId" , req.user?._id)
 
   if(!avatarLocalPath){
     throw new ApiError(400," Avatar file is missing")
@@ -302,10 +311,13 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
 
   const user = await User.findByIdAndUpdate(req.user?._id, {$set:{avatar: avatar.url}}, {new: true}).select("-password");
 
+  if(!user){
+    throw new ApiError(500 , "failed to update")
+  }
+
   return res.status(200)
   .json(new ApiResponse(200, user, "Avatar image updated successfully"))
 })
-
 
 
 const updateUserCoverImage = asyncHandler(async(req, res) => {

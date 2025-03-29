@@ -51,14 +51,14 @@ router.route("/assignment").post(assignment)
 router.route("/changeCurrentPassword").post(verifyJWT,changeCurrentPassword)
 router.route("/getCurrentUser").get(verifyJWT,getCurrentUser)
 router.route("/updateAccountDetails").post(verifyJWT,updateAccountDetails)
-router.route("/updateUserAvatar").post(verifyJWT,
+router.route("/updateUserAvatar").post( verifyJWT,
     
     upload.fields([
         {
             name: "avatar",
             maxCount: 1
         }
-    ]),
+    ]), 
     
     updateUserAvatar)
 router.route("/updateUserCoverImage").post(verifyJWT,
