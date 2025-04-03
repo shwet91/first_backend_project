@@ -411,6 +411,22 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
   
 })
 
+const getAnyUser = asyncHandler(async(req, res) => {
+  const { userId } = req.params ;
+
+  if(!userId){
+    throw new ApiError(200 , "please provide userId")
+  }
+
+  const user = await User.findById(userId)
+  if(!user){
+    throw new ApiError(200 , "userId not found")
+  }
+
+  return res.status(200)
+   .json(new ApiResponse(200, user, "user fetched successfully"))
+ })
+
 
 
 
@@ -425,5 +441,6 @@ getCurrentUser,
 updateAccountDetails,
 updateUserAvatar,
 updateUserCoverImage,
-getUserChannelProfile
+getUserChannelProfile,
+getAnyUser
 }

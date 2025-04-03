@@ -9,6 +9,9 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 const toggleSubscription = asyncHandler(async (req, res) => {
     const {channelId} = req.params
     // TODO: toggle subscription
+    // check if document already exist
+    // if document exist delete it 
+    // if not exist create it
 
     if(!channelId ){
         throw new ApiError(400 , "Please provide chanel Id")
@@ -17,17 +20,24 @@ const toggleSubscription = asyncHandler(async (req, res) => {
         throw new ApiError(400 , "unauthorized request")
     }
 
-    const subscription = await Subscription.create({
+    const subscriptionDocument = await Subscription.findOneAndDelete({
         channel : channelId,
         subscriber : req.user._id
     })
 
-    const createdSubscription = await Subscription.findById(subscription._id)
-    if(!createdSubscription){
-        throw new ApiError(500 , "failed to create subscription document")
+    let newSubscriptionDocument
+    let result =` User unsubscribed ${channelId}`
+
+    if(!subscriptionDocument){
+        newSubscriptionDocument =  await Subscription.create({
+            channel : channelId,
+            subscriber : req.user._id
+        })
+
+        result = `User subscribed ${channelId}`
     }
 
-    return res.status(200).json( new ApiResponse(200 , createdSubscription , "channel subscribed"))
+    return res.status(200).json( new ApiResponse(200 , {result} , "channel subscribed"))
 
 })
 
@@ -35,13 +45,9 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     const {channelId} = req.params
 
-    if(!req.user?._id ){
-        throw new ApiError(400 , "unauthorized request")
-    }
-
     const subscribers = await Subscription.aggregate([
         {
-            $match : { channel : req.user._id }
+            $match : { channel : new mongoose.Types.ObjectId(channelId) }
         },
         {
             $project : {
@@ -51,11 +57,13 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         }
     ])
 
+    console.log(subscribers)
+
     if(!subscribers){
-        throw new ApiError(500 , "failed to get subscribers")
+        return res.status(200).json( new ApiResponse( 20, { } , "0 subscribers "))
     }
     if(subscribers.length === 0){
-        throw new ApiError(400 , "No subscribers")
+        return res.status(200).json( new ApiResponse( 20, { } , "0 subscribers "))
     }
 
     return res.status(200).json( new ApiResponse( 20, subscribers , "subscribers listed"))

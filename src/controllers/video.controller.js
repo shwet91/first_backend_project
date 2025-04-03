@@ -45,7 +45,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description , duration} = req.body
     // TODO: get video, upload to cloudinary, create video
-    console.log(req.body)
+    // console.log(req.body)
 
     if( !req.user?._id){
         throw new ApiError( 400 , "unauthorized request...login first to upload video")
@@ -76,7 +76,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
         }
     }
 
-    console.log(title , description , duration)
+    // console.log(title , description , duration)
 
 
     const video = await Video.create({
@@ -120,9 +120,10 @@ const getVideoById = asyncHandler(async (req, res) => {
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
-    const { videoId , title , description } = req.params
+    const { videoId } = req.params;
+    const { title , description } = req.body;
     //TODO: update video details like title, description, thumbnail
-
+  
     if(!videoId){
         throw new ApiError(40 , "provide videoId")
     }
@@ -131,10 +132,21 @@ const updateVideo = asyncHandler(async (req, res) => {
     if( !video ){
         throw new ApiError(500 , "Video not found")
     } 
+
+    const thumbnailPath = req.file?.path
+
+    const uploadedThumbnail = await uploadOnCloudinary(thumbnailPath)
+
+    if(!uploadedThumbnail){
+        throw new ApiError(400 , "failed to upload thumbnail")
+    }
+
+    const thumbnail = uploadedThumbnail.url
  
     const updatedVideo = await Video.findByIdAndUpdate( videoId , {
         title,
-        description
+        description,
+        thumbnail
     } , { new:true , runValidators: true } )
 
     if(!updatedVideo){
@@ -180,11 +192,49 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     return res.status(200).json( new ApiResponse(200 , updatedVideo , "ok"))
 })
 
+const videoRecomendations = asyncHandler(async(req , res) => {
+    const { count } = req.params;
+
+    const docs =  await Video.aggregate([
+        {
+            $sample : { size : Number(count) }
+        }
+    ])
+
+    if(!docs){
+        throw new ApiError(500 , "failed to fetch")
+    }
+
+    return res.status(200).json( new ApiResponse(200 , docs , "ok"))
+})
+
+const increaseVideoViews = asyncHandler(async (req , res) => {
+    const { videoId } = req.params ;
+
+    if(!videoId){
+        throw new ApiError(400 , "please provide videoId")
+    }
+
+    const increaseView = await Video.findOneAndUpdate(
+        {_id : videoId},
+        { $inc : { views : 1}},
+        { new : true}
+    );
+
+    if(!increaseView) {
+        throw new ApiError(500 , "failed to increase view")
+    }
+
+    return res.status(200).json(new ApiResponse( 200 , increaseView , "view increased"))
+})
+
 export {
     getAllVideos,
     publishAVideo,
     getVideoById,
     updateVideo,
     deleteVideo,
-    togglePublishStatus
+    togglePublishStatus,
+    videoRecomendations,
+    increaseVideoViews
 }

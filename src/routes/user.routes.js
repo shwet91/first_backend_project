@@ -12,7 +12,8 @@ import {
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverImage,
-    getUserChannelProfile
+    getUserChannelProfile,
+    getAnyUser
     } from "../controllers/user.controller.js"
 
 
@@ -34,6 +35,7 @@ registerUser
 )
 
 router.route("/login").post(loginUser)
+router.route("/getAnyUser/:userId").get(getAnyUser)
 
 //secured routes
 router.route("/logout").post(verifyJWT, logoutUser)
@@ -72,5 +74,6 @@ router.route("/updateUserCoverImage").post(verifyJWT,
 
     updateUserCoverImage)
 router.route("/getUserChannelProfile/:username").post(getUserChannelProfile)
+
 
 export default router
