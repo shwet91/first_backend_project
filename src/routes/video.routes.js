@@ -1,26 +1,29 @@
 import { Router } from 'express';
 import {
     deleteVideo,
-    getAllVideos,
+    searchVideo,
     getVideoById,
     publishAVideo,
     togglePublishStatus,
     updateVideo,
     videoRecomendations,
-    increaseVideoViews
+    increaseVideoViews,
+    getWatchHistory
 } from "../controllers/video.controller.js"
 import {verifyJWT} from "../middlewares/auth.middleware.js"
 import {upload} from "../middlewares/multer.middleware.js"
 
 const router = Router();
-router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
+// router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 router.route("/recomendations/:count").get(videoRecomendations)
-router.route("/increaseViews/:videoId").post(increaseVideoViews)
-router.route("/updateVideo/:videoId").patch( upload.single("thumbnail") , updateVideo)
+router.route("/increaseViews/:videoId").post( verifyJWT , increaseVideoViews)
+router.route("/updateVideo/:videoId").patch(verifyJWT , upload.single("thumbnail") , updateVideo)
+router.route("/searchResult").post(searchVideo)
+router.route("/getWatchHistory/:userId").post(getWatchHistory)
 
 router
     .route("/")
-    .get(getAllVideos)
+    .get()
     .post(
         upload.fields([
             {
@@ -39,8 +42,8 @@ router
 router
     .route("/:videoId")
     .get(getVideoById)
-    .delete(deleteVideo)
+    .delete(verifyJWT ,deleteVideo)
 
-router.route("/toggle/publish/:videoId").patch(togglePublishStatus);
+router.route("/toggle/publish/:videoId").patch(verifyJWT ,togglePublishStatus);
 
 export default router

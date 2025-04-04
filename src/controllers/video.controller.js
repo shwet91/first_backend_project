@@ -7,9 +7,10 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 
 
-const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
+const searchVideo = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 10, query, sortBy, sortType = "asc", userId } = req.body
     //TODO: get all videos based on query, sort, pagination
+    console.log(req.body)
     if(!query){
         throw new ApiError(400 , "please provide the query")
     }
@@ -19,7 +20,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     }
 
     if(sortType !== "asc" && sortType !== "desc" ){
-        throw new ApiError("please provide proper value of sort type")
+        throw new ApiError( 400 , "please provide proper value of sort type")
     }
 
     const sortOrder = sortType === "asc" ? 1 : -1 ;
@@ -32,11 +33,8 @@ const getAllVideos = asyncHandler(async (req, res) => {
     .limit(Number(limit))
     .sort({ [sortBy] : sortOrder})
    
-    if(!videos ){
-        throw new ApiError(400 , "failed to find videos!")
-    }
     if(videos.length === 0 ){
-        throw new ApiError(400 , "There are no videos")
+        return res.status(200).json( new ApiResponse(200 , videos , " No video found "))
     }
     return res.status(200).json( new ApiResponse(200 , videos , "video search success"))
 
@@ -214,6 +212,9 @@ const increaseVideoViews = asyncHandler(async (req , res) => {
     if(!videoId){
         throw new ApiError(400 , "please provide videoId")
     }
+    if(!req.user?._id){
+        throw new ApiError(400 , "unauthorized processes")
+    }
 
     const increaseView = await Video.findOneAndUpdate(
         {_id : videoId},
@@ -225,16 +226,47 @@ const increaseVideoViews = asyncHandler(async (req , res) => {
         throw new ApiError(500 , "failed to increase view")
     }
 
-    return res.status(200).json(new ApiResponse( 200 , increaseView , "view increased"))
+    const user = await User.findById(req.user?._id)
+    console.log(user.watchHistory)
+
+    if(!user){
+        throw new ApiError(400 , 'user does not exist')
+    }
+
+    if(!user.watchHistory.includes(videoId)){
+        user.watchHistory.push(videoId)
+        await user.save()
+    }
+
+    return res.status(200).json(new ApiResponse( 200 , {increaseView , }  , "view increased"))
+})
+
+const getWatchHistory = asyncHandler(async(req , res) => {
+    const {userId }= req.params ;
+    if(!userId){
+        throw new ApiError(400 , "please Provide User Id")
+    }
+    console.log(typeof(userId))
+    const newId = new mongoose.Types.ObjectId(userId)
+
+    const user = await User.findById(newId)
+
+    if(!user){
+        throw new ApiError(400 , "User doesnt exist")
+    }
+
+    user.watchHistory
+    return res.status(200).json( new ApiResponse(200 , user.watchHistory , "watchHistory fetch successful"))
 })
 
 export {
-    getAllVideos,
+    searchVideo,
     publishAVideo,
     getVideoById,
     updateVideo,
     deleteVideo,
     togglePublishStatus,
     videoRecomendations,
-    increaseVideoViews
+    increaseVideoViews,
+    getWatchHistory
 }
